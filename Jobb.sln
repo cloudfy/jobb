@@ -2,11 +2,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jobb.Core", "Jobb.Core\Jobb.Core.csproj", "{06C8A4C6-BEA6-4994-AA6B-56D44F3CCC33}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jobb.Core", "Jobb.Core\Jobb.Core.csproj", "{06C8A4C6-BEA6-4994-AA6B-56D44F3CCC33}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jobb.CliClient", "Jobb.CliClient\Jobb.CliClient.csproj", "{43ADC37B-9D90-40F1-8889-A048164A84C6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jobb.CliClient", "Jobb.CliClient\Jobb.CliClient.csproj", "{43ADC37B-9D90-40F1-8889-A048164A84C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jobb.Generator", "Jobb.Generator\Jobb.Generator.csproj", "{B056B82E-AB46-4F31-ABDE-21C874471766}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jobb.Generator", "Jobb.Generator\Jobb.Generator.csproj", "{B056B82E-AB46-4F31-ABDE-21C874471766}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VisualStudio.AddIn", "VisualStudio.AddIn", "{D6C040DB-6DFD-47E6-B13C-4CD3F8F32F2B}"
 EndProject
@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		LICENSE = LICENSE
 		README.md = README.md
+		sample.jobb = sample.jobb
 	EndProjectSection
 EndProject
 Global

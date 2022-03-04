@@ -1,0 +1,130 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "http://jobb.org/2022/1.0/schema",
+  "type": "object",
+  "title": "Jobb schema",
+  "description": "The root schema comprises the entire JSON document.",
+  "default": {},
+  "examples": [
+    {
+      "ConnectionString": "Server=.\\SQLExpress;Database=SampleDb;Trusted_Connection=True;",
+      "ExportOptions": {
+        "ExportStatistics": false,
+        "ExportFullText": false,
+        "ExportIndexes": true,
+        "ExportViews": false
+      },
+      "ScriptOptions": {
+        "ScriptDatabase": false
+      }
+    }
+  ],
+  "required": [
+    "ConnectionString"
+  ],
+  "properties": {
+    "ConnectionString": {
+      "$id": "#/properties/ConnectionString",
+      "type": "string",
+      "title": "The ConnectionString schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "Server=.\\SQLExpress;Database=SampleDb;Trusted_Connection=True;"
+      ]
+    },
+    "ExportOptions": {
+      "$id": "#/properties/ExportOptions",
+      "type": "object",
+      "title": "The ExportOptions schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": {},
+      "examples": [
+        {
+          "ExportStatistics": false,
+          "ExportFullText": false,
+          "ExportIndexes": true,
+          "ExportViews": false
+        }
+      ],
+      "required": [
+        "ExportStatistics",
+        "ExportFullText",
+        "ExportIndexes",
+        "ExportViews"
+      ],
+      "properties": {
+        "ExportStatistics": {
+          "$id": "#/properties/ExportOptions/properties/ExportStatistics",
+          "type": "boolean",
+          "title": "The ExportStatistics schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": false,
+          "examples": [
+            false
+          ]
+        },
+        "ExportFullText": {
+          "$id": "#/properties/ExportOptions/properties/ExportFullText",
+          "type": "boolean",
+          "title": "The ExportFullText schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": false,
+          "examples": [
+            false
+          ]
+        },
+        "ExportIndexes": {
+          "$id": "#/properties/ExportOptions/properties/ExportIndexes",
+          "type": "boolean",
+          "title": "The ExportIndexes schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": false,
+          "examples": [
+            true
+          ]
+        },
+        "ExportViews": {
+          "$id": "#/properties/ExportOptions/properties/ExportViews",
+          "type": "boolean",
+          "title": "The ExportViews schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": false,
+          "examples": [
+            false
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "ScriptOptions": {
+      "$id": "#/properties/ScriptOptions",
+      "type": "object",
+      "title": "The ScriptOptions schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": {},
+      "examples": [
+        {
+          "ScriptDatabase": false
+        }
+      ],
+      "required": [
+        "ScriptDatabase"
+      ],
+      "properties": {
+        "ScriptDatabase": {
+          "$id": "#/properties/ScriptOptions/properties/ScriptDatabase",
+          "type": "boolean",
+          "title": "The ScriptDatabase schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": false,
+          "examples": [
+            false
+          ]
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

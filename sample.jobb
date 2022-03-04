@@ -1,0 +1,12 @@
+{
+	"ConnectionString": "Server=.\\SQLExpress;Database=RepositoryTest;Trusted_Connection=True;",
+	"ExportOptions": {
+		"ExportStatistics": false,
+		"ExportFullText": false,
+		"ExportIndexes": true,
+		"ExportViews" :  false
+	},
+	"ScriptOptions" : {
+		"ScriptDatabase" :  false
+	}
+}
