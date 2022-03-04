@@ -8,6 +8,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jobb.CliClient", "Jobb.CliC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jobb.Generator", "Jobb.Generator\Jobb.Generator.csproj", "{B056B82E-AB46-4F31-ABDE-21C874471766}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VisualStudio.AddIn", "VisualStudio.AddIn", "{D6C040DB-6DFD-47E6-B13C-4CD3F8F32F2B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{F05AAA23-7CBC-4A4D-B52E-DC92FB8C9FF0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", "Solution Files", "{C0E09AE0-FFD0-47AA-B879-BB05143D2EB2}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +39,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{06C8A4C6-BEA6-4994-AA6B-56D44F3CCC33} = {F05AAA23-7CBC-4A4D-B52E-DC92FB8C9FF0}
+		{B056B82E-AB46-4F31-ABDE-21C874471766} = {D6C040DB-6DFD-47E6-B13C-4CD3F8F32F2B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {35119C4F-F2A0-4A15-B662-3177834C7E22}
