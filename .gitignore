@@ -16,6 +16,12 @@
 # Mono auto generated files
 mono_crash.*
 
+# Jobb sample output
+sample.jobb.sql
+sample.sql
+*.jobb
+*.job
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Jobb</RootNamespace>
+    <AssemblyName>Jobb</AssemblyName>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageId>$(AssemblyName).Cli</PackageId>
+
+	<AssemblyVersion>1.0.1.0</AssemblyVersion>
+	<Version>1.0.1</Version>
+
+	<ToolCommandName>jobb</ToolCommandName>
+	<PackAsTool>True</PackAsTool>
+	<Description>Jobb CLI to generate SQL schema.</Description>
+	<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+	<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<None Include="LICENSE.txt" Pack="true" PackagePath=""/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="LICENSE.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Jobb.Core\Jobb.Core.csproj" />
+  </ItemGroup>
+
+</Project>
