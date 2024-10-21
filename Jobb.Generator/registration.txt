@@ -1,0 +1,6 @@
+﻿[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\14.0\CLSID\{52B316AA-1997-4c81-9969-83604C09EEB4}]
+@="COM+ class: Jobb.Generator.JobbGenerator"
+"InprocServer32"="C:\\WINDOWS\\system32\\mscoree.dll"
+"ThreadingModel"="Both"
+"Class"="Jobb.Generator.JobbGenerator"
+"Assembly"="Microsoft.VSDesigner, Version=14.0.0.0, Culture=Neutral, PublicKeyToken=b03f5f7f11d50a3a"

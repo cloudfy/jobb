@@ -12,9 +12,18 @@ namespace Jobb.IO
         {
             return System.IO.Path.IsPathRooted(fullname) && System.IO.Path.GetExtension(fullname) == ".jobb";
         }
-        public static async Task<JobbFile> ReadFile(string fullname)
+        public static JobbFile ReadFile(string fullname)
         {
-            var content = await File.ReadAllTextAsync(fullname);
+            var content = File.ReadAllText(fullname);
+            var file = JsonConvert.DeserializeObject<JobbFile>(content);
+            file.OutputFile = fullname + ".sql";
+            file.OutputFileName = Path.GetFileName(file.OutputFile);
+
+            return file;
+        }
+
+        public static JobbFile ReadContent(string fullname, string content)
+        {
             var file = JsonConvert.DeserializeObject<JobbFile>(content);
             file.OutputFile = fullname + ".sql";
             file.OutputFileName = Path.GetFileName(file.OutputFile);

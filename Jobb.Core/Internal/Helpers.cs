@@ -27,10 +27,12 @@ namespace Jobb
             else
                 Console.WriteLine(objType + ": " + db + "." + schema + "." + objName + " (" + so.ToString() + ")");
 
-
             System.Collections.Specialized.StringCollection cs = new System.Collections.Specialized.StringCollection();
             try
             {
+                so.ClusteredIndexes = true;
+                so.ColumnStoreIndexes = true;
+                
                 cs = (o as dynamic).Script(so);
             }
             catch (Exception)

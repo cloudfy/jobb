@@ -11,7 +11,7 @@
     <PackageId>$(AssemblyName).Cli</PackageId>
 
 	<AssemblyVersion>1.0.1.0</AssemblyVersion>
-	<Version>1.0.1</Version>
+	<Version>1.0.3</Version>
 
 	<ToolCommandName>jobb</ToolCommandName>
 	<PackAsTool>True</PackAsTool>
@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<None Include="LICENSE.txt" Pack="true" PackagePath=""/>
+	<None Include="LICENSE.txt" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>

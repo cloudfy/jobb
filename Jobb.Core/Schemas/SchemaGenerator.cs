@@ -5,28 +5,45 @@ using Microsoft.SqlServer.Management.Common;
 using Microsoft.SqlServer.Management.Smo;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Jobb.Schemas
 {
     public sealed class SchemaGenerator
     {
-        public void Generate(JobbFile options)
+        private string TryGetDatabase(string connectionString)
         {
-            var cn = new SqlConnection(options.ConnectionString);
+            var regex = new Regex("(database|initial catalog)=([a-zA-Z0-9_-]+)"
+                , RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+            var match = regex.Match(connectionString);
+            if (match.Success)
+                return match.Groups[match.Groups.Count - 1].Value;
+
+            return null;
+        }
+
+        public async Task GenerateFile(JobbFile options)
+        {
+            var buffer = await Generate(options);
+
+            File.WriteAllBytes(options.OutputFile, buffer);
+        }
+        public async Task<byte[]> Generate(JobbFile options)
+        {
+            string databaseName = TryGetDatabase(options.ConnectionString);
+
+            var cn = new SqlConnection(options.ConnectionString);
+            
             try
             {
-                cn.Open();
+                await cn.OpenAsync();
                 cn.Close();
             }
             catch (Exception ex)
             {
-                Console.Clear();
-                Console.WriteLine("ERROR!");
-                Console.WriteLine(ex.Message);
-                //Console.WriteLine("(Server:" + HOST + ", User:" + USER + ", PASS: " + PASS.Substring(0, 1) + (new String('*', PASS.Length - 2)) + PASS.Substring(PASS.Count() - 1, 1) + ")");
-                Console.ReadKey();
-                return;
+                throw ex;
             }
 
             var sc = new ServerConnection(cn);
@@ -34,24 +51,29 @@ namespace Jobb.Schemas
 
             Server server = new Server(sc);
 
-            StreamWriter outputWriter = new StreamWriter(options.OutputFile);
-            //var outputWriter = Console.Out;
-
+            MemoryStream memoryStream = new MemoryStream();
+            StreamWriter outputWriter = new StreamWriter(memoryStream);
 
             foreach (var db in server.Databases.Cast<Database>().AsQueryable().Where(o => o.IsSystemObject == false))
             {
+                if (string.IsNullOrEmpty(databaseName) == false 
+                    && db.Name.Equals(databaseName, StringComparison.CurrentCultureIgnoreCase) == false)
+                    continue;
+
                 if (db.IsSystemObject)
                     continue;
 
-                Console.WriteLine(db.Name);
+            //    Console.WriteLine("Database: {0}", db.Name);
 
-                if (options.ScriptOptions?.ScriptDatabase ?? false) 
+                if (options.ScriptOptions != null 
+                    && options.ScriptOptions.ScriptDatabase == true) 
                 { 
                     /// *************************************************************
                     /// Database
                     Jobb.Helpers.WriteSQLInner<Database>(db.Name, "", "DB", db.Name, outputWriter, db, ScriptOption.Default);
                 }
-                if (options.ScriptOptions?.ScriptSchema ?? false) 
+                if (options.ScriptOptions != null 
+                    && options.ScriptOptions.ScriptSchema == true) 
                 { 
                     /// *************************************************************
                     /// Schema
@@ -200,8 +222,14 @@ namespace Jobb.Schemas
             }
 
             outputWriter.Flush();
-            outputWriter.Close();
 
+            memoryStream.Position = 0;
+            var returnValue = memoryStream.ToArray();
+            
+            outputWriter.Dispose();
+            memoryStream.Dispose();
+
+            return returnValue;
         }
     }
 }

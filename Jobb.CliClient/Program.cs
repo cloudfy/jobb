@@ -7,32 +7,32 @@ namespace Jobb
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Jobb v1.0.0\n");
+            Console.WriteLine("Jobb v1.0.3\n");
 
             if (args.Length == 0)
                 ShowHelp();
             else
             {
-                MainAsync(args).Wait();
-            }
-        }
-        static async Task MainAsync(string[] args)
-        {
-            string? file = null;
+                string? file = null;
 
-            if (IOHelper.IsJobbFile(args[0]))
-                file = args[0];
+                if (IOHelper.IsJobbFile(args[0]))
+                    file = args[0];
 
-            //foreach (var arg in args)
-            //    Console.WriteLine(arg);
+                //foreach (var arg in args)
+                //    Console.WriteLine(arg);
 
-            if (file is not null)
-            {
-                var jobbFile = await IOHelper.ReadFile(file);
-                ColorConsole.WriteLineInfo("Generating schema: " + jobbFile.OutputFileName);
+                if (file is not null)
+                {
+                    var jobbFile = IOHelper.ReadFile(file);
+                    ColorConsole.WriteLineInfo("Generating schema: " + jobbFile.OutputFileName);
 
-                SchemaGenerator generator = new();
-                generator.Generate(jobbFile);
+                    ColorConsole.WriteLineWarning("\nPlease wait...\n");
+
+                    SchemaGenerator generator = new();
+                    generator.GenerateFile(jobbFile);
+
+                    ColorConsole.WriteLineSuccess("\n{0} generated", jobbFile.OutputFileName);
+                }
             }
         }
 

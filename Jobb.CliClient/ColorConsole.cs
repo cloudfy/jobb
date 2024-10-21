@@ -24,5 +24,14 @@ namespace Jobb
             Console.WriteLine(format, args);
             Console.ResetColor();
         }
+        internal static void WriteLineSuccess(string format, params object?[]? args)
+        {
+            WriteLine(ConsoleColor.Green, format, args);
+        }
+
+        internal static void WriteLineWarning(string format, params object?[]? args)
+        {
+            WriteLine(ConsoleColor.Yellow, format, args);
+        }
     }
 }
