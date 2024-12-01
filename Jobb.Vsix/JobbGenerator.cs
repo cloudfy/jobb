@@ -6,7 +6,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Jobb.Schemas;
 using Jobb.IO;
-using System.Threading.Tasks;
 
 namespace Jobb.Vsix
 {
@@ -33,11 +32,12 @@ namespace Jobb.Vsix
     [InstalledProductRegistration("JobbGenerator", "Generates SQL from a Jobb file", "1.0")]
     [ComVisible(true)]
     [ProvideObject(typeof(JobbGenerator))]
-    [JobbGeneratorRegistration(typeof(JobbGenerator), "JobbGenerator", "{FAE04EC1-301F-11D3-BF4B-00C04F79EFBC}", GeneratesDesignTimeSource = true)]
+    [JobbGeneratorRegistration(typeof(JobbGenerator), "JobbGenerator", JobbGenerator.CsharpProject, GeneratesDesignTimeSource = true)]
     public sealed class JobbGenerator 
         : IVsSingleFileGenerator
     {
         public const string PackageGuidString = "a95589dd-b696-48aa-b934-f36b799d2db0";
+        public const string CsharpProject = "{FAE04EC1-301F-11D3-BF4B-00C04F79EFBC}";
 
         public JobbGenerator()
         {
@@ -50,14 +50,20 @@ namespace Jobb.Vsix
             return pbstrDefaultExtension.Length;
         }
 
-        public async Task<byte[]> Generate(string inputFile, string inputContent, IVsGeneratorProgress generatorProgress)
+        private byte[] Generate(string inputFile, string inputContent, IVsGeneratorProgress generatorProgress)
         {
             var jobbFile = IOHelper.ReadContent(inputFile, inputContent);
-            //ColorConsole.WriteLineInfo("Generating schema: " + jobbFile.OutputFileName);
-            //ColorConsole.WriteLineWarning("\nPlease wait...\n");
-
+            
             SchemaGenerator generator = new SchemaGenerator();
-            return await generator.Generate(jobbFile);
+            generator.GenerationProgress += (sender, e) =>
+            {
+                ThreadHelper.ThrowIfNotOnUIThread();
+                generatorProgress.Progress(30 + (uint)(e.Step * 5), 100);
+            };
+            return ThreadHelper.JoinableTaskFactory.Run<byte[]>(async delegate
+            {
+                return await generator.Generate(jobbFile);
+            });
         }
 
         public int Generate(
@@ -80,14 +86,11 @@ namespace Jobb.Vsix
 
             try
             {
-                pGenerateProgress.Progress(30, 100);
+                pGenerateProgress.Progress(20, 100);
 
-                var bytes = Generate(
-                    wszInputFilePath
-                    , bstrInputFileContents
-                    , pGenerateProgress).GetAwaiter().GetResult();
+                var bytes = Generate(wszInputFilePath, bstrInputFileContents, pGenerateProgress);
 
-                pGenerateProgress.Progress(60, 100);
+                pGenerateProgress.Progress(80, 100);
 
                 int length = bytes.Length;
                 rgbOutputFileContents[0] = Marshal.AllocCoTaskMem(length);
@@ -102,7 +105,7 @@ namespace Jobb.Vsix
 
                 pGenerateProgress.GeneratorError(4, 1, ex.Message, 1, 1);
                 pcbOutput = 0;
-                return VSConstants.E_UNEXPECTED;
+                return VSConstants.S_FALSE;
             }
             return VSConstants.S_OK;
         }

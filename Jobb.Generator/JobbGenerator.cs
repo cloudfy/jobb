@@ -31,16 +31,6 @@ namespace Jobb.Generator
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="wszInputFilePath">Required. Input path of the file.</param>
-        /// <param name="bstrInputFileContents"></param>
-        /// <param name="wszDefaultNamespace"></param>
-        /// <param name="rgbOutputFileContents"></param>
-        /// <param name="pcbOutput"></param>
-        /// <param name="pGenerateProgress"></param>
-        /// <returns></returns>
         public int Generate(string wszInputFilePath, string bstrInputFileContents, string wszDefaultNamespace, IntPtr[] rgbOutputFileContents, out uint pcbOutput, IVsGeneratorProgress pGenerateProgress)
         {
             string generatedContent = "Hello World from VSIX!";
@@ -59,7 +49,7 @@ namespace Jobb.Generator
             // Use the IVsGeneratorProgress to indicate progress if needed
             pGenerateProgress?.Progress(100, 100); // Indicate completion
 
-            return 0; // VSConstants.S_OK;
+            return 0; //VSConstants.S_OK;
 
             //pcbOutput = 0;
             //return 0;

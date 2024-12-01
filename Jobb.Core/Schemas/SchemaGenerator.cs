@@ -1,50 +1,48 @@
 ﻿using Jobb.IO;
-using Microsoft.Data.SqlClient;
 using System;
-using Microsoft.SqlServer.Management.Common;
-using Microsoft.SqlServer.Management.Smo;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Threading;
 
-namespace Jobb.Schemas
+using Microsoft.Data.SqlClient;
+using Microsoft.SqlServer.Management.Common;
+using Microsoft.SqlServer.Management.Smo;
+
+namespace Jobb.Schemas;
+
+public sealed class SchemaGenerator
 {
-    public sealed class SchemaGenerator
+    public event EventHandler<GenerationProgressEventArgs>? GenerationProgress;
+
+    private string TryGetDatabase(string connectionString)
     {
-        private string TryGetDatabase(string connectionString)
+        var regex = new Regex("(database|initial catalog)=([a-zA-Z0-9_-]+)"
+            , RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        var match = regex.Match(connectionString);
+        if (match.Success)
+            return match.Groups[match.Groups.Count - 1].Value;
+
+        return null;
+    }
+
+    public async Task GenerateFile(JobbFile options)
+    {
+        var buffer = await Generate(options);
+
+        File.WriteAllBytes(options.OutputFile, buffer);
+    }
+    public async Task<byte[]> Generate(JobbFile options, CancellationToken cancellationToken = default)
+    {
+        string databaseName = TryGetDatabase(options.ConnectionString);
+
+        var cn = new SqlConnection(options.ConnectionString);
+        
+        try
         {
-            var regex = new Regex("(database|initial catalog)=([a-zA-Z0-9_-]+)"
-                , RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-            var match = regex.Match(connectionString);
-            if (match.Success)
-                return match.Groups[match.Groups.Count - 1].Value;
-
-            return null;
-        }
-
-        public async Task GenerateFile(JobbFile options)
-        {
-            var buffer = await Generate(options);
-
-            File.WriteAllBytes(options.OutputFile, buffer);
-        }
-        public async Task<byte[]> Generate(JobbFile options)
-        {
-            string databaseName = TryGetDatabase(options.ConnectionString);
-
-            var cn = new SqlConnection(options.ConnectionString);
-            
-            try
-            {
-                await cn.OpenAsync();
-                cn.Close();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            await cn.OpenAsync(cancellationToken);
 
             var sc = new ServerConnection(cn);
             sc.Connect();
@@ -56,33 +54,35 @@ namespace Jobb.Schemas
 
             foreach (var db in server.Databases.Cast<Database>().AsQueryable().Where(o => o.IsSystemObject == false))
             {
-                if (string.IsNullOrEmpty(databaseName) == false 
+                if (string.IsNullOrEmpty(databaseName) == false
                     && db.Name.Equals(databaseName, StringComparison.CurrentCultureIgnoreCase) == false)
                     continue;
 
                 if (db.IsSystemObject)
                     continue;
 
-            //    Console.WriteLine("Database: {0}", db.Name);
+                //    Console.WriteLine("Database: {0}", db.Name);
 
-                if (options.ScriptOptions != null 
-                    && options.ScriptOptions.ScriptDatabase == true) 
-                { 
+                if (options.ScriptOptions != null
+                    && options.ScriptOptions.ScriptDatabase == true)
+                {
                     /// *************************************************************
                     /// Database
-                    Jobb.Helpers.WriteSQLInner<Database>(db.Name, "", "DB", db.Name, outputWriter, db, ScriptOption.Default);
+                    await Helpers.WriteSQLInner<Database>(db.Name, "", "DB", db.Name, outputWriter, db, ScriptOption.Default);
                 }
-                if (options.ScriptOptions != null 
-                    && options.ScriptOptions.ScriptSchema == true) 
-                { 
+                if (options.ScriptOptions != null
+                    && options.ScriptOptions.ScriptSchema == true)
+                {
                     /// *************************************************************
                     /// Schema
                     foreach (var schema2 in db.Schemas.Cast<Schema>().AsQueryable())
                     {
                         //filePath = PrepareSqlFile(db.Name, "", "Schema", schema2.Name, currentPath, "");
-                        Jobb.Helpers.WriteSQLInner<Schema>(db.Name, "", "Schema", schema2.Name, outputWriter, schema2, ScriptOption.Default);
+                        await Helpers.WriteSQLInner<Schema>(db.Name, "", "Schema", schema2.Name, outputWriter, schema2, ScriptOption.Default);
                     }
                 }
+
+                GenerationProgress?.Invoke(this, new GenerationProgressEventArgs(1, 8));
 
                 /// *************************************************************
                 /// DB USER TYPES
@@ -90,7 +90,7 @@ namespace Jobb.Schemas
                 foreach (UserDefinedType o in db.UserDefinedTypes)
                 {
                     //filePath = PrepareSqlFile(db.Name, o.Schema, "UTYPE", o.Name, currentPath, "");
-                    Jobb.Helpers.WriteSQLInner<UserDefinedType>(db.Name, o.Schema, "UTYPE", o.Name, outputWriter, o, ScriptOption.Default);
+                    await Helpers.WriteSQLInner<UserDefinedType>(db.Name, o.Schema, "UTYPE", o.Name, outputWriter, o, ScriptOption.Default);
                 }
 
                 /// *************************************************************
@@ -99,8 +99,10 @@ namespace Jobb.Schemas
                 foreach (DatabaseDdlTrigger o in db.Triggers.Cast<DatabaseDdlTrigger>().AsQueryable().Where(o => o.IsSystemObject == false))
                 {
                     //filePath = PrepareSqlFile(db.Name, "dbo", "TRIGGER", o.Name, currentPath, "");
-                    Jobb.Helpers.WriteSQLInner<DatabaseDdlTrigger>(db.Name, "dbo", "TRIGGER", o.Name, outputWriter, o, ScriptOption.Default);
+                    await Helpers.WriteSQLInner<DatabaseDdlTrigger>(db.Name, "dbo", "TRIGGER", o.Name, outputWriter, o, ScriptOption.Default);
                 }
+
+                GenerationProgress?.Invoke(this, new GenerationProgressEventArgs(2, 8));
 
                 /// *************************************************************
                 /// DB USER TABLE TYPES
@@ -108,8 +110,10 @@ namespace Jobb.Schemas
                 foreach (UserDefinedTableType o in db.UserDefinedTableTypes)
                 {
                     //filePath = PrepareSqlFile(db.Name, o.Schema, "TTYPES", o.Name, currentPath, "");
-                    Jobb.Helpers.WriteSQLInner<UserDefinedTableType>(db.Name, o.Schema, "TTYPES", o.Name, outputWriter, o, ScriptOption.Default);
+                    await Helpers.WriteSQLInner<UserDefinedTableType>(db.Name, o.Schema, "TTYPES", o.Name, outputWriter, o, ScriptOption.Default);
                 }
+
+                GenerationProgress?.Invoke(this, new GenerationProgressEventArgs(3, 8));
 
                 /// *************************************************************
                 /// DB FULLTEXT CATALOGS
@@ -119,7 +123,7 @@ namespace Jobb.Schemas
                     foreach (FullTextCatalog o in db.FullTextCatalogs)
                     {
                         //filePath = PrepareSqlFile(db.Name, "dbo", "FTC", o.Name, currentPath, "");
-                        Jobb.Helpers.WriteSQLInner<FullTextCatalog>(db.Name, "dbo", "FTC", o.Name, outputWriter, o, ScriptOption.Default);
+                        await Helpers.WriteSQLInner<FullTextCatalog>(db.Name, "dbo", "FTC", o.Name, outputWriter, o, ScriptOption.Default);
                     }
 
                     /// *************************************************************
@@ -128,9 +132,11 @@ namespace Jobb.Schemas
                     foreach (FullTextStopList o in db.FullTextStopLists)
                     {
                         // filePath = PrepareSqlFile(db.Name, "dbo", "FTL", o.Name, currentPath, "");
-                        Jobb.Helpers.WriteSQLInner<FullTextStopList>(db.Name, "dbo", "FTL", o.Name, outputWriter, o, ScriptOption.Default);
+                        await Helpers.WriteSQLInner<FullTextStopList>(db.Name, "dbo", "FTL", o.Name, outputWriter, o, ScriptOption.Default);
                     }
                 }
+
+                GenerationProgress?.Invoke(this, new GenerationProgressEventArgs(4, 8));
 
                 /// *************************************************************
                 /// STORED PROCEDURES
@@ -138,8 +144,10 @@ namespace Jobb.Schemas
                 foreach (StoredProcedure o in db.StoredProcedures.Cast<StoredProcedure>().AsQueryable().Where(o => o.IsSystemObject == false))
                 {
                     // filePath = PrepareSqlFile(db.Name, o.Schema, "PROCEDURE", o.Name, currentPath, "");
-                    Jobb.Helpers.WriteSQLInner<StoredProcedure>(db.Name, o.Schema, "PROCEDURE", o.Name, outputWriter, o, ScriptOption.Default);
+                    await Helpers.WriteSQLInner<StoredProcedure>(db.Name, o.Schema, "PROCEDURE", o.Name, outputWriter, o, ScriptOption.Default);
                 }
+
+                GenerationProgress?.Invoke(this, new GenerationProgressEventArgs(5, 8));
 
                 /// *************************************************************
                 /// FUNCTIONS
@@ -147,8 +155,10 @@ namespace Jobb.Schemas
                 foreach (UserDefinedFunction o in db.UserDefinedFunctions.Cast<UserDefinedFunction>().Where(oo => oo.IsSystemObject == false))
                 {
                     // filePath = PrepareSqlFile(db.Name, o.Schema, "FUNCTION", o.Name, currentPath, "");
-                    Jobb.Helpers.WriteSQLInner<UserDefinedFunction>(db.Name, o.Schema, "FUNCTION", o.Name, outputWriter, o, ScriptOption.Default);
+                    await Helpers.WriteSQLInner<UserDefinedFunction>(db.Name, o.Schema, "FUNCTION", o.Name, outputWriter, o, ScriptOption.Default);
                 }
+
+                GenerationProgress?.Invoke(this, new GenerationProgressEventArgs(6, 8));
 
                 /// *************************************************************
                 /// TABLE
@@ -157,9 +167,9 @@ namespace Jobb.Schemas
 
                     //currentPath = csFile.CreateFolder(dbPath, pathify("TABLE"));
                     //filePath = PrepareSqlFile(db.Name, o.Schema, "TABLE", o.Name, currentPath, "");
-                    Jobb.Helpers.WriteSQLInner<Table>(db.Name, o.Schema, "TABLE", o.Name, outputWriter, o, ScriptOption.Default);
-                    Jobb.Helpers.WriteSQLInner<Table>(db.Name, o.Schema, "TABLE", o.Name, outputWriter, o, ScriptOption.Indexes);
-                    Jobb.Helpers.WriteSQLInner<Table>(db.Name, o.Schema, "TABLE", o.Name, outputWriter, o, ScriptOption.DriAll);
+                    await Helpers.WriteSQLInner<Table>(db.Name, o.Schema, "TABLE", o.Name, outputWriter, o, ScriptOption.Default);
+                    await Helpers.WriteSQLInner<Table>(db.Name, o.Schema, "TABLE", o.Name, outputWriter, o, ScriptOption.Indexes);
+                    await Helpers.WriteSQLInner<Table>(db.Name, o.Schema, "TABLE", o.Name, outputWriter, o, ScriptOption.DriAll);
 
 
                     //////////////////////////////////////////////////////////////////////////
@@ -168,7 +178,7 @@ namespace Jobb.Schemas
                     foreach (Trigger ot in o.Triggers.Cast<Trigger>().AsQueryable().Where(oo => oo.IsSystemObject == false))
                     {
                         //filePath = PrepareSqlFile(db.Name, o.Schema, "TRIGGER", ot.Name, currentPath, "TABLE_" + o.Name);
-                        Jobb.Helpers.WriteSQLInner<Trigger>(db.Name, o.Schema, "TRIGGER", ot.Name, outputWriter, ot, ScriptOption.Default);
+                        await Helpers.WriteSQLInner<Trigger>(db.Name, o.Schema, "TRIGGER", ot.Name, outputWriter, ot, ScriptOption.Default);
                     }
 
                     //////////////////////////////////////////////////////////////////////////
@@ -179,10 +189,12 @@ namespace Jobb.Schemas
                         foreach (Statistic ot in o.Statistics.Cast<Statistic>().AsQueryable())
                         {
                             //filePath = PrepareSqlFile(db.Name, o.Schema, "STATISTIC", ot.Name, currentPath, "TABLE_" + o.Name);
-                            Jobb.Helpers.WriteSQLInner<Statistic>(db.Name, o.Schema, "STATISTIC", ot.Name, outputWriter, ot, ScriptOption.OptimizerData);
+                            await Helpers.WriteSQLInner<Statistic>(db.Name, o.Schema, "STATISTIC", ot.Name, outputWriter, ot, ScriptOption.OptimizerData);
                         }
                     }
                 }
+
+                GenerationProgress?.Invoke(this, new GenerationProgressEventArgs(7, 8));
 
                 //////////////////////////////////////////////////////////////////////////
                 // VIEWS
@@ -193,9 +205,9 @@ namespace Jobb.Schemas
 
                         // currentPath = csFile.CreateFolder(dbPath, pathify("VIEW"));
                         // filePath = PrepareSqlFile(db.Name, o.Schema, "VIEW", o.Name, currentPath, "");
-                        Jobb.Helpers.WriteSQLInner<View>(db.Name, o.Schema, "VIEW", o.Name, outputWriter, o, ScriptOption.Default);
-                        Jobb.Helpers.WriteSQLInner<View>(db.Name, o.Schema, "VIEW", o.Name, outputWriter, o, ScriptOption.Indexes);
-                        Jobb.Helpers.WriteSQLInner<View>(db.Name, o.Schema, "VIEW", o.Name, outputWriter, o, ScriptOption.DriAllConstraints);
+                        await Helpers.WriteSQLInner<View>(db.Name, o.Schema, "VIEW", o.Name, outputWriter, o, ScriptOption.Default);
+                        await Helpers.WriteSQLInner<View>(db.Name, o.Schema, "VIEW", o.Name, outputWriter, o, ScriptOption.Indexes);
+                        await Helpers.WriteSQLInner<View>(db.Name, o.Schema, "VIEW", o.Name, outputWriter, o, ScriptOption.DriAllConstraints);
 
                         //////////////////////////////////////////////////////////////////////////
                         //VIEW TRIGGERS
@@ -203,7 +215,7 @@ namespace Jobb.Schemas
                         foreach (Trigger ot in o.Triggers.Cast<Trigger>().AsQueryable().Where(oo => oo.IsSystemObject == false))
                         {
                             //filePath = PrepareSqlFile(db.Name, o.Schema, "TRIGGER", ot.Name, currentPath, "VIEW_" + o.Name);
-                            Jobb.Helpers.WriteSQLInner<Trigger>(db.Name, o.Schema, "TRIGGER", ot.Name, outputWriter, ot, ScriptOption.Default);
+                            await Helpers.WriteSQLInner<Trigger>(db.Name, o.Schema, "TRIGGER", ot.Name, outputWriter, ot, ScriptOption.Default);
                         }
 
                         //////////////////////////////////////////////////////////////////////////
@@ -214,22 +226,36 @@ namespace Jobb.Schemas
                             foreach (Statistic ot in o.Statistics.Cast<Statistic>().AsQueryable())
                             {
                                 //filePath = PrepareSqlFile(db.Name, o.Schema, "STATISTIC", ot.Name, currentPath, "VIEW_" + o.Name);
-                                Jobb.Helpers.WriteSQLInner<Statistic>(db.Name, o.Schema, "STATISTIC", ot.Name, outputWriter, ot, ScriptOption.OptimizerData);
+                                await Helpers.WriteSQLInner<Statistic>(db.Name, o.Schema, "STATISTIC", ot.Name, outputWriter, ot, ScriptOption.OptimizerData);
                             }
                         }
                     }
                 }
+
+                GenerationProgress?.Invoke(this, new GenerationProgressEventArgs(8, 8));
+
             }
 
-            outputWriter.Flush();
+            await outputWriter.FlushAsync();
 
             memoryStream.Position = 0;
             var returnValue = memoryStream.ToArray();
-            
+
             outputWriter.Dispose();
             memoryStream.Dispose();
 
             return returnValue;
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+        finally
+        {
+            if (cn.State == System.Data.ConnectionState.Open)
+            {
+                cn.Close();
+            }
         }
     }
 }
