@@ -1,44 +1,65 @@
 ﻿using Jobb.IO;
 using Jobb.Schemas;
+using System.Reflection;
 
-namespace Jobb 
+namespace Jobb; 
+
+class Program 
 {
-    class Program 
+    static async Task Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Jobb v1.0.0\n");
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+        Console.WriteLine($"Jobb v{version}\n");
 
-            if (args.Length == 0)
-                ShowHelp();
+        if (args.Length == 0) 
+        { 
+            ShowHelp();
+        }
+        else
+        {
+            string? file;
+
+            if (Path.IsPathRooted(args[0]) == false)
+            {
+                file = Path.Combine(Environment.CurrentDirectory, args[0]);
+            }
             else
             {
-                MainAsync(args).Wait();
-            }
-        }
-        static async Task MainAsync(string[] args)
-        {
-            string? file = null;
-
-            if (IOHelper.IsJobbFile(args[0]))
                 file = args[0];
+            }
 
+            if (File.Exists(file) == false)
+            {
+                ColorConsole.WriteLine(ConsoleColor.Red, "File not found: " + file);
+                return;
+            }
+
+            if (IOHelper.IsJobbFile(file) == false)
+            {
+                ColorConsole.WriteLine(ConsoleColor.Red, "File not JOBB file: " + file);
+                return;
+            }
             //foreach (var arg in args)
             //    Console.WriteLine(arg);
 
             if (file is not null)
             {
-                var jobbFile = await IOHelper.ReadFile(file);
-                ColorConsole.WriteLineInfo("Generating schema: " + jobbFile.OutputFileName);
+                var jobbFile = IOHelper.ReadFile(file);
+
+                ColorConsole.WriteLineInfo("Generating schema:\n* output: " + jobbFile.OutputFile + "\n* from  : " + file);
+                ColorConsole.WriteLineInfo($"\nOptions:\n* schema           : {jobbFile.ScriptOptions?.ScriptSchema ?? false}\n* database         : {jobbFile.ScriptOptions?.ScriptDatabase ?? false}\n* stored procedures: {jobbFile.ScriptOptions?.ScriptStoredProcedures ?? false}");
+                ColorConsole.WriteLineWarning("\nPlease wait...\n");
 
                 SchemaGenerator generator = new();
-                generator.Generate(jobbFile);
+                await generator.GenerateFile(jobbFile);
+
+                ColorConsole.WriteLineSuccess("\n{0} generated", jobbFile.OutputFileName);
             }
         }
+    }
 
-        static void ShowHelp()
-        {
-            Console.WriteLine("jobb [file] [options]\nOptions:");
-        }
+    static void ShowHelp()
+    {
+        Console.WriteLine("Usage: jobb [file.jobb] [outputfile]\n\nOptions:\n  outputfile\t Optional outputfile. If not file is specified, file will be file.jobb.sql in same location.");
     }
 }

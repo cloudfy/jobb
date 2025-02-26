@@ -10,7 +10,9 @@ Command line to generate export.
 
 ### Install as a global tool
 ```
-dotnet tool install --global Jobb.Cli --version 1.0.1
+dotnet tool install --global Jobb.Cli --version 1.0.8
+dotnet tool install --global Jobb.Cli --version 1.0.8 --add-source ./Jobb.Cli.1.0.8.nupkg
+
 ```
 
 ### Update global tool after install

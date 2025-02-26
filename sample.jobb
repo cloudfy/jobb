@@ -1,12 +1,12 @@
 {
-	"ConnectionString": "Server=.\\SQLExpress;Database=RepositoryTest;Trusted_Connection=True;",
+	"ConnectionString": "Server=.\\SQLExpress;Database=Plude_v1;Trusted_Connection=True;",
 	"ExportOptions": {
 		"ExportStatistics": false,
 		"ExportFullText": false,
 		"ExportIndexes": true,
-		"ExportViews" :  false
+		"ExportViews": false
 	},
-	"ScriptOptions" : {
-		"ScriptDatabase" :  false
+	"ScriptOptions": {
+		"ScriptDatabase": false
 	}
 }
