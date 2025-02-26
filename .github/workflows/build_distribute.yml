@@ -7,7 +7,7 @@ jobs:
   build:
     env:
       BUILD_CONFIG: 'Release'
-      SOLUTION: 'Jobb.CliClient.csproj'
+      SOLUTION: '**/Jobb.CliClient.csproj'
     runs-on: ubuntu-latest
     
     steps:
