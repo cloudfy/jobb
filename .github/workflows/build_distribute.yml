@@ -19,10 +19,10 @@ jobs:
         dotnet-version: 9.0.x
 
     - name: Install dependencies
-      run: dotnet restore
+      run: dotnet restore ${{ env.SOLUTION }}
     
     - name: Build
-      run: dotnet build --configuration ${{ env.BUILD_CONFIG }} --no-restore
+      run: dotnet build ${{ env.SOLUTION }} --configuration ${{ env.BUILD_CONFIG }} --no-restore
  
     - name: Pack
       run: dotnet pack ${{ env.SOLUTION }} --no-build

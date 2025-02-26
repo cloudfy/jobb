@@ -6,7 +6,7 @@
     <SignAssembly>True</SignAssembly>
 	<LangVersion>latest</LangVersion>
 	<Nullable>enable</Nullable>
-    <AssemblyOriginatorKeyFile>C:\Development\Repros\Jobb\Jobb.Vsix\Key.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
