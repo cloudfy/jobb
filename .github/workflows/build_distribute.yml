@@ -1,9 +1,8 @@
 name: Distribute Nuget version
 run-name: Build and provide a new Nuget package.
 on:
-  pull_request:
-    branches:
-    - release/*
+  workflow_dispatch: ## manual
+
 jobs:
   build:
     env:
