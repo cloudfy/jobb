@@ -18,12 +18,14 @@ jobs:
       with:
         dotnet-version: 9.0.x
 
- #   - name: Install dependencies
- #     run: dotnet restore
- #   - name: Build
- #     run: dotnet build --configuration Release --no-restore
+    - name: Install dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --configuration ${{ env.BUILD_CONFIG }} --no-restore
+ 
     - name: Pack
-      run: dotnet pack ${{ env.SOLUTION }} --configuration ${{ env.BUILD_CONFIG }} 
+      run: dotnet pack ${{ env.SOLUTION }} --no-build
 
     - name: Publish
       run: dotnet nuget push **\*.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json
