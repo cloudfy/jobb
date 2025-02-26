@@ -24,7 +24,7 @@ internal static class Helpers
         else
             Console.WriteLine(objType + ": " + db + "." + schema + "." + objName + " (" + so.ToString() + ")");
 
-        System.Collections.Specialized.StringCollection cs = new System.Collections.Specialized.StringCollection();
+        System.Collections.Specialized.StringCollection cs;
         try
         {
             so.ClusteredIndexes = true;
@@ -46,7 +46,7 @@ internal static class Helpers
             {
                 await SqlSchema.Write(writer, SqlComments(db, schema, objType, objName), true);
 
-                await SqlSchema.Write(writer, ts + ";" + Environment.NewLine, true);
+                await SqlSchema.Write(writer, ts + "GO" + Environment.NewLine, true);
             }
         }
 

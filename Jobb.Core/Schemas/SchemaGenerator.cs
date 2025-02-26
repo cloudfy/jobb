@@ -47,17 +47,21 @@ public sealed class SchemaGenerator
             var sc = new ServerConnection(cn);
             sc.Connect();
 
-            Server server = new Server(sc);
+            var server = new Server(sc);
+            //server.SetDefaultInitFields(true);
+            server.SetDefaultInitFields(typeof(Database), "IsSystemObject", "Name");
+            server.SetDefaultInitFields(typeof(Table), "IsSystemObject", "Name");
 
-            MemoryStream memoryStream = new MemoryStream();
-            StreamWriter outputWriter = new StreamWriter(memoryStream);
+            var memoryStream = new MemoryStream();
+            var outputWriter = new StreamWriter(memoryStream);
 
-            foreach (var db in server.Databases.Cast<Database>().AsQueryable().Where(o => o.IsSystemObject == false))
+            var databases =  server.Databases
+                .Cast<Database>()
+                .Where(n => n.Name.Equals(databaseName, StringComparison.CurrentCultureIgnoreCase) && n.IsSystemObject == false)
+                .ToList();
+
+            foreach (var db in databases)
             {
-                if (string.IsNullOrEmpty(databaseName) == false
-                    && db.Name.Equals(databaseName, StringComparison.CurrentCultureIgnoreCase) == false)
-                    continue;
-
                 if (db.IsSystemObject)
                     continue;
 
@@ -140,35 +144,48 @@ public sealed class SchemaGenerator
 
                 /// *************************************************************
                 /// STORED PROCEDURES
-                //currentPath = csFile.CreateFolder(dbPath, pathify("PROCEDURE"));
-                foreach (StoredProcedure o in db.StoredProcedures.Cast<StoredProcedure>().AsQueryable().Where(o => o.IsSystemObject == false))
-                {
-                    // filePath = PrepareSqlFile(db.Name, o.Schema, "PROCEDURE", o.Name, currentPath, "");
-                    await Helpers.WriteSQLInner<StoredProcedure>(db.Name, o.Schema, "PROCEDURE", o.Name, outputWriter, o, ScriptOption.Default);
+                if (options.ScriptOptions?.ScriptStoredProcedures ?? true) 
+                { 
+                    //currentPath = csFile.CreateFolder(dbPath, pathify("PROCEDURE"));
+                    foreach (StoredProcedure o in db.StoredProcedures.Cast<StoredProcedure>().AsQueryable().Where(o => o.IsSystemObject == false))
+                    {
+                        // filePath = PrepareSqlFile(db.Name, o.Schema, "PROCEDURE", o.Name, currentPath, "");
+                        await Helpers.WriteSQLInner<StoredProcedure>(db.Name, o.Schema, "PROCEDURE", o.Name, outputWriter, o, ScriptOption.Default);
+                    }
+
                 }
 
                 GenerationProgress?.Invoke(this, new GenerationProgressEventArgs(5, 8));
 
                 /// *************************************************************
                 /// FUNCTIONS
-                // currentPath = csFile.CreateFolder(dbPath, pathify("FUNCTION"));
-                foreach (UserDefinedFunction o in db.UserDefinedFunctions.Cast<UserDefinedFunction>().Where(oo => oo.IsSystemObject == false))
-                {
-                    // filePath = PrepareSqlFile(db.Name, o.Schema, "FUNCTION", o.Name, currentPath, "");
-                    await Helpers.WriteSQLInner<UserDefinedFunction>(db.Name, o.Schema, "FUNCTION", o.Name, outputWriter, o, ScriptOption.Default);
+                if (options.ScriptOptions?.ScriptUserDefinedFunctions ?? true) 
+                { 
+                    // currentPath = csFile.CreateFolder(dbPath, pathify("FUNCTION"));
+                    foreach (UserDefinedFunction o in db.UserDefinedFunctions.Cast<UserDefinedFunction>().Where(oo => oo.IsSystemObject == false))
+                    {
+                        // filePath = PrepareSqlFile(db.Name, o.Schema, "FUNCTION", o.Name, currentPath, "");
+                        await Helpers.WriteSQLInner<UserDefinedFunction>(db.Name, o.Schema, "FUNCTION", o.Name, outputWriter, o, ScriptOption.Default);
+                    }
+
                 }
 
                 GenerationProgress?.Invoke(this, new GenerationProgressEventArgs(6, 8));
 
                 /// *************************************************************
                 /// TABLE
-                foreach (Table o in db.Tables.Cast<Table>().AsQueryable().Where(o => o.IsSystemObject == false))
+                foreach (Table o in db.Tables
+                    .Cast<Table>()
+                    .AsQueryable()
+                    .Where(o => o.IsSystemObject == false))
                 {
+                    if (o.IsSystemObject)
+                        continue;
 
                     //currentPath = csFile.CreateFolder(dbPath, pathify("TABLE"));
                     //filePath = PrepareSqlFile(db.Name, o.Schema, "TABLE", o.Name, currentPath, "");
                     await Helpers.WriteSQLInner<Table>(db.Name, o.Schema, "TABLE", o.Name, outputWriter, o, ScriptOption.Default);
-                    await Helpers.WriteSQLInner<Table>(db.Name, o.Schema, "TABLE", o.Name, outputWriter, o, ScriptOption.Indexes);
+              //      await Helpers.WriteSQLInner<Table>(db.Name, o.Schema, "TABLE", o.Name, outputWriter, o, ScriptOption.Indexes);
                     await Helpers.WriteSQLInner<Table>(db.Name, o.Schema, "TABLE", o.Name, outputWriter, o, ScriptOption.DriAll);
 
 
@@ -233,7 +250,6 @@ public sealed class SchemaGenerator
                 }
 
                 GenerationProgress?.Invoke(this, new GenerationProgressEventArgs(8, 8));
-
             }
 
             await outputWriter.FlushAsync();

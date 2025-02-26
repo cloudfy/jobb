@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>Jobb</RootNamespace>
@@ -10,14 +10,15 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>$(AssemblyName).Cli</PackageId>
 
-	<AssemblyVersion>1.0.4.0</AssemblyVersion>
-	<Version>1.0.4</Version>
-
-	<ToolCommandName>jobb</ToolCommandName>
+	<AssemblyVersion>1.0.9.0</AssemblyVersion>
+	<Version>1.0.9.0</Version>
+	<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <ToolCommandName>jobb</ToolCommandName>
 	<PackAsTool>True</PackAsTool>
 	<Description>Jobb CLI to generate SQL schema.</Description>
 	<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 	<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	<Title>Jobb Cli</Title>
   </PropertyGroup>
 
   <ItemGroup>

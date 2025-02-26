@@ -1,5 +1,6 @@
 ﻿using Jobb.IO;
 using Jobb.Schemas;
+using System.Reflection;
 
 namespace Jobb; 
 
@@ -7,13 +8,16 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        Console.WriteLine("Jobb v1.0.4\n");
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+        Console.WriteLine($"Jobb v{version}\n");
 
-        if (args.Length == 0)
+        if (args.Length == 0) 
+        { 
             ShowHelp();
+        }
         else
         {
-            string? file = null;
+            string? file;
 
             if (Path.IsPathRooted(args[0]) == false)
             {
@@ -41,8 +45,9 @@ class Program
             if (file is not null)
             {
                 var jobbFile = IOHelper.ReadFile(file);
-                ColorConsole.WriteLineInfo("Generating schema: " + jobbFile.OutputFileName);
 
+                ColorConsole.WriteLineInfo("Generating schema:\n* output: " + jobbFile.OutputFile + "\n* from  : " + file);
+                ColorConsole.WriteLineInfo($"\nOptions:\n* schema           : {jobbFile.ScriptOptions?.ScriptSchema ?? false}\n* database         : {jobbFile.ScriptOptions?.ScriptDatabase ?? false}\n* stored procedures: {jobbFile.ScriptOptions?.ScriptStoredProcedures ?? false}");
                 ColorConsole.WriteLineWarning("\nPlease wait...\n");
 
                 SchemaGenerator generator = new();
@@ -55,6 +60,6 @@ class Program
 
     static void ShowHelp()
     {
-        Console.WriteLine("jobb [file]");
+        Console.WriteLine("Usage: jobb [file.jobb] [outputfile]\n\nOptions:\n  outputfile\t Optional outputfile. If not file is specified, file will be file.jobb.sql in same location.");
     }
 }

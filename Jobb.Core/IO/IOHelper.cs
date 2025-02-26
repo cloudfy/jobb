@@ -12,7 +12,7 @@ public static class IOHelper
     public static JobbFile ReadFile(string fullname)
     {
         var content = File.ReadAllText(fullname);
-        var file = JsonConvert.DeserializeObject<JobbFile>(content);
+        var file = JsonConvert.DeserializeObject<JobbFile>(content)!;
         file.OutputFile = fullname + ".sql";
         file.OutputFileName = Path.GetFileName(file.OutputFile);
 
@@ -21,7 +21,7 @@ public static class IOHelper
 
     public static JobbFile ReadContent(string fullname, string content)
     {
-        var file = JsonConvert.DeserializeObject<JobbFile>(content);
+        var file = JsonConvert.DeserializeObject<JobbFile>(content)!;
         file.OutputFile = fullname + ".sql";
         file.OutputFileName = Path.GetFileName(file.OutputFile);
 
